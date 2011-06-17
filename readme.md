@@ -1,7 +1,7 @@
-### connect-backbone-server
+# connect-backbone-server
 Connect middleware which provides a REST backend for a Backbone.js client
 
-## Example
+### Example
     var Backbone = require('backbone');
     Backbone.sync = require('backbone-stash')('data').sync;
     var Todo = Backbone.Model.extend({});
