@@ -9,3 +9,6 @@ Connect middleware which provides a REST backend for a Backbone.js client
     var collections = {todos: new Todos()};
     express_app.use(express.bodyParser());
     express_app.use(backboneServer(collections));
+
+### To Do
+- turn this into an npm package
