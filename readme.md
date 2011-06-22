@@ -12,3 +12,4 @@ Connect middleware which provides a REST backend for a Backbone.js client
 
 ### To Do
 - turn this into an npm package
+- post to https://github.com/senchalabs/connect/wiki
