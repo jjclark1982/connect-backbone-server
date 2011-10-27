@@ -31,12 +31,27 @@ var getUrl = function(object) {
     }
 };
 
-var randomUDID = function () {
-    'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-        return v.toString(16);
-    });
-}
+var ensureID = function (model) {
+    if (typeof model.id === 'undefined') {
+        if (model.collection) {
+            var highest_id = model.collection.highest_id;
+            if (typeof highest_id === 'undefined') {
+                highest_id = 0;
+                var base = stash.key(getUrl(model));
+                _.each(stash.list(), function(val, key) {
+                    if (val && key.indexOf(base) === 0 && val.id > highest_id) {
+                        highest_id = val.id;
+                    }
+                });
+            }
+            var new_id = model.collection.highest_id = highest_id + 1;
+            model.set({id: new_id});
+        }
+        else {
+            model.id = model.cid;
+        }
+    }
+};
 
 exports = module.exports = function backboneServer(collections) {
     return function backboneServer(req, res, next) {
@@ -73,15 +88,11 @@ exports = module.exports = function backboneServer(collections) {
                 }
                 break;
             case 'POST':
-                var req_model = req.body;
-                // req_model.id = randomUDID()
-                var try_id = collection.last() ? collection.last().id + 1 : 1;
-                while (collection.get(try_id)) {
-                    try_id++;
-                }
-                req_model.id = try_id;
-                collection.create(req_model, {
-                    success: function(model, response){res.send(model, 200)},
+                collection.create(collection.parse([req.body])[0], {
+                    success: function(model, response){
+                        ensureID(model);
+                        res.send(model, 200);
+                    },
                     error: function(model, response){res.send(response, 500)}
                 });
                 break;
@@ -89,7 +100,7 @@ exports = module.exports = function backboneServer(collections) {
                 if (!found_model) {
                     return res.send(404);
                 }
-                found_model.save(req.body, {
+                found_model.save(found_model.parse(req.body), {
                     success: function(model, response){res.send(model, 200)},
                     error: function(model, response){res.send(response, 500)}
                 });
